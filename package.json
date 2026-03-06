@@ -1,0 +1,16 @@
+{
+  "name": "adev",
+  "version": "1.0.0",
+  "description": "Auto Dev - 一键配置 Claude Code 全自动开发系统",
+  "type": "module",
+  "bin": {
+    "adev": "./bin/adev.mjs"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/"
+  ],
+  "keywords": ["claude-code", "ai", "automation", "agent", "development"],
+  "license": "MIT"
+}
