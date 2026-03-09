@@ -35,8 +35,16 @@ async function main() {
   }
 
   const command = args[0];
-  const targetDir = args[1] || process.cwd();
   const skipPrompts = args.includes('-y') || args.includes('--yes');
+
+  // Find target directory (first non-flag argument after command)
+  let targetDir = process.cwd();
+  for (let i = 1; i < args.length; i++) {
+    if (!args[i].startsWith('-')) {
+      targetDir = args[i];
+      break;
+    }
+  }
 
   switch (command) {
     case 'init':
