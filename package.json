@@ -4,7 +4,8 @@
   "description": "Auto Dev - 一键配置 Claude Code 全自动开发系统",
   "type": "module",
   "bin": {
-    "adev": "./bin/adev.mjs"
+    "adev": "./bin/adev.mjs",
+    "qoder-dev": "./bin/qoder-dev.mjs"
   },
   "files": [
     "bin/",
