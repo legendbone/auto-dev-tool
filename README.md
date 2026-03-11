@@ -6,14 +6,63 @@
 
 ## 安装
 
+### 安装 CLI 工具
+
 需要 Node.js >= 22。
 
 ```bash
-cd adev
+git clone https://github.com/legendbone/auto-dev-tool.git
+cd auto-dev-tool
+git checkout qoder-dev  # 切换到 QoderWork 适配版本
 npm link
 ```
 
-安装后在终端中输入 `adev` 即可使用。
+安装后在终端中输入 `adev` 或 `qoder-dev` 即可使用。
+
+### 安装 Skill（QoderWork 用户）
+
+如果你使用 QoderWork，可以将 skill 安装到本地，实现跨机器同步：
+
+**方法 1：直接从仓库安装（推荐）**
+
+```bash
+# 克隆仓库
+git clone https://github.com/legendbone/auto-dev-tool.git ~/auto-dev-tool
+cd ~/auto-dev-tool && git checkout qoder-dev
+
+# 安装 skill 到 QoderWork
+mkdir -p ~/.qoderwork/skills/auto-dev
+cp skill/SKILL.md ~/.qoderwork/skills/auto-dev/
+
+# 安装 CLI 工具
+npm link
+```
+
+**方法 2：手动复制（如果你已经下载了仓库）**
+
+```bash
+cd /path/to/auto-dev-tool
+mkdir -p ~/.qoderwork/skills/auto-dev
+cp skill/SKILL.md ~/.qoderwork/skills/auto-dev/
+npm link
+```
+
+**方法 3：备份/恢复 skill（换机器时）**
+
+```bash
+# 原机器：备份 skill
+tar czf ~/auto-dev-skill-backup.tar.gz -C ~/.qoderwork/skills auto-dev
+
+# 新机器：恢复 skill
+mkdir -p ~/.qoderwork/skills
+tar xzf ~/auto-dev-skill-backup.tar.gz -C ~/.qoderwork/skills/
+```
+
+安装完成后，QoderWork 会自动识别 skill，当你提到以下关键词时会自动加载：
+- "自动开发"、"auto dev"、"adev"
+- "配置开发工作流"
+- "task.json"、"进度跟踪"
+- "/dev:next"、"/dev:status"
 
 ## 两种模式
 
@@ -138,15 +187,64 @@ claude                                 # 启动 Claude Code
 adev/
 ├── package.json
 ├── bin/
-│   └── adev.mjs              # CLI 入口
+│   ├── adev.mjs              # CLI 入口 (Claude Code 版本)
+│   └── qoder-dev.mjs         # CLI 入口 (QoderWork 版本)
 ├── src/
-│   ├── prompts.mjs            # 交互提示工具
-│   ├── generate.mjs           # CLAUDE.md 动态生成引擎 + 模板
-│   ├── init.mjs               # 新项目初始化
-│   └── scan.mjs               # 老项目扫描与接管
-└── templates/
-    └── run-automation.sh      # 自动化循环脚本模板
+│   ├── prompts.mjs           # 交互提示工具
+│   ├── generate.mjs          # CLAUDE.md 动态生成引擎 + 模板
+│   ├── init.mjs              # 新项目初始化
+│   ├── scan.mjs              # 老项目扫描与接管
+│   └── qoder/                # QoderWork 适配版本
+│       ├── init.mjs
+│       ├── status.mjs
+│       └── next.mjs
+├── skill/
+│   └── SKILL.md              # QoderWork Skill 定义
+├── templates/
+│   └── run-automation.sh     # 自动化循环脚本模板
+└── README.md
 ```
+
+## Skill 同步与管理
+
+**QoderWork 的 skill 存储在本地，不会自动跨机器同步。** 建议通过 Git 仓库管理：
+
+### 同步流程
+
+```bash
+# 1. 在新机器上克隆仓库
+git clone https://github.com/legendbone/auto-dev-tool.git
+cd auto-dev-tool
+git checkout qoder-dev
+
+# 2. 安装 skill
+mkdir -p ~/.qoderwork/skills/auto-dev
+cp skill/SKILL.md ~/.qoderwork/skills/auto-dev/
+
+# 3. 安装 CLI 工具
+npm link
+
+# 4. 验证安装
+qoder-dev help
+```
+
+### 更新 Skill
+
+当仓库有更新时：
+
+```bash
+cd ~/auto-dev-tool  # 你的仓库目录
+git pull origin qoder-dev
+cp skill/SKILL.md ~/.qoderwork/skills/auto-dev/
+```
+
+### 多机器同步检查清单
+
+换机器时，确保同步以下内容：
+
+- [ ] `~/.qoderwork/skills/auto-dev/SKILL.md` — Skill 定义
+- [ ] `npm link` 后的 `adev` 和 `qoder-dev` 命令
+- [ ] 你的项目中的 `task.json` 和 `progress.txt`（在项目仓库中）
 
 ## 理论背景
 
