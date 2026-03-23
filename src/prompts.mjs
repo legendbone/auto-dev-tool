@@ -17,14 +17,23 @@ export async function ask(question, defaultVal = '') {
 export async function choose(question, options) {
   console.log(`\n  ${question}`);
   options.forEach((opt, i) => console.log(`    ${i + 1}. ${opt}`));
-  const r = rl();
-  return new Promise(resolve => {
-    r.question(`  请选择 [1-${options.length}]: `, answer => {
-      r.close();
-      const idx = parseInt(answer) - 1;
-      resolve(options[idx] || options[0]);
+
+  const promptUser = () => {
+    const r = rl();
+    return new Promise(resolve => {
+      r.question(`  请选择 [1-${options.length}]: `, answer => {
+        r.close();
+        const idx = parseInt(answer) - 1;
+        if (idx >= 0 && idx < options.length) {
+          resolve(options[idx]);
+        } else {
+          console.log(`  请输入 1 到 ${options.length} 之间的数字`);
+          resolve(promptUser());
+        }
+      });
     });
-  });
+  };
+  return promptUser();
 }
 
 export async function confirm(question, defaultYes = true) {

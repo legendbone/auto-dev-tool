@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "项目现状梳理",
+      "description": "阅读代码，理解项目架构，在 progress.txt 中记录发现",
+      "steps": [
+        "阅读 architecture.md 了解项目概况",
+        "浏览核心源码文件，理解代码结构",
+        "运行现有测试，记录基线状态",
+        "在 progress.txt 中记录项目理解"
+      ],
+      "passes": false
+    }
+  ]
+}

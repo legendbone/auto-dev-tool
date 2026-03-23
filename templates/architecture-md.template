@@ -1,0 +1,47 @@
+# {{projectName}} - 项目架构文档
+
+> 本文件由 `adev scan` 自动生成，帮助 AI Agent 快速理解项目现状。
+> 生成时间: {{date}}
+
+## 技术栈
+
+{{techStackList}}
+
+## 项目统计
+
+| 指标 | 值 |
+|------|-----|
+{{statsTable}}
+
+## 目录结构
+
+```
+{{tree}}
+```
+
+## 检测到的配置文件
+
+{{configFilesList}}
+
+## 可用脚本
+
+{{scriptsList}}
+{{#if hasKeyFiles}}
+
+## 关键入口文件
+
+{{keyFilesList}}
+{{/if}}
+{{#if hasReadme}}
+
+## 项目 README 摘要
+
+{{readmeContent}}
+{{/if}}
+
+---
+
+## 给 AI Agent 的提示
+
+请在开始工作前仔细阅读以上信息。如果有不明确的地方，请先浏览对应的源码文件再动手。
+特别注意项目已有的代码组织方式和命名约定，新代码必须保持一致。

@@ -18,7 +18,7 @@ const IGNORE_DIRS = new Set([
 ]);
 
 // ---- 技术栈检测 ----
-function detectTechStack(dir) {
+export function detectTechStack(dir) {
   const stack = [];
   const has = (f) => fs.existsSync(path.join(dir, f));
   const readJson = (f) => {
@@ -38,7 +38,7 @@ function detectTechStack(dir) {
           break;
         }
       }
-    } catch {}
+    } catch (e) { console.error(`  [warn] 扫描子目录失败: ${e.message}`); }
   }
   const hasPkg = (f) => fs.existsSync(path.join(pkgDir, f));
   const readPkgJson = (f) => {
@@ -85,7 +85,7 @@ function detectTechStack(dir) {
         if (content.includes('flask'))   stack.push('Flask');
         if (content.includes('fastapi')) stack.push('FastAPI');
         if (content.includes('pytest'))  stack.push('Pytest');
-      } catch {}
+      } catch { /* pyproject.toml 格式异常，跳过框架检测 */ }
     }
   }
 
@@ -96,7 +96,7 @@ function detectTechStack(dir) {
       const content = fs.readFileSync(path.join(dir, 'go.mod'), 'utf-8');
       if (content.includes('gin-gonic'))  stack.push('Gin');
       if (content.includes('fiber'))      stack.push('Fiber');
-    } catch {}
+    } catch { /* go.mod 读取失败，跳过框架检测 */ }
   }
 
   // Rust
@@ -122,7 +122,7 @@ function detectTechStack(dir) {
 }
 
 // ---- 提取 npm scripts ----
-function extractScripts(dir) {
+export function extractScripts(dir) {
   // 先检查根目录
   const tryRead = (d) => {
     try {
@@ -139,12 +139,12 @@ function extractScripts(dir) {
       scripts = tryRead(path.join(dir, sub.name));
       if (scripts) return scripts;
     }
-  } catch {}
+  } catch (e) { console.error(`  [warn] 扫描子目录 scripts 失败: ${e.message}`); }
   return {};
 }
 
 // ---- 目录树生成 ----
-function generateTree(dir, prefix = '', depth = 0, maxDepth = 3) {
+export function generateTree(dir, prefix = '', depth = 0, maxDepth = 3) {
   if (depth >= maxDepth) return '';
   let result = '';
   try {
@@ -167,12 +167,12 @@ function generateTree(dir, prefix = '', depth = 0, maxDepth = 3) {
         result += generateTree(path.join(dir, entry.name), prefix + childPrefix, depth + 1, maxDepth);
       }
     });
-  } catch {}
+  } catch { /* 目录不可读，跳过该层级 */ }
   return result;
 }
 
 // ---- 检测配置文件 ----
-function detectConfigFiles(dir) {
+export function detectConfigFiles(dir) {
   const configs = [
     'tsconfig.json', '.eslintrc', '.eslintrc.js', '.eslintrc.json', 'eslint.config.js', 'eslint.config.mjs',
     '.prettierrc', '.prettierrc.js', 'prettier.config.js',
@@ -189,7 +189,7 @@ function detectConfigFiles(dir) {
 }
 
 // ---- 统计文件 ----
-function countFiles(dir, stats = {}, depth = 0) {
+export function countFiles(dir, stats = {}, depth = 0) {
   if (depth > 8) return stats;
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -202,12 +202,12 @@ function countFiles(dir, stats = {}, depth = 0) {
         stats[ext] = (stats[ext] || 0) + 1;
       }
     }
-  } catch {}
+  } catch { /* 目录不可读，跳过该层级 */ }
   return stats;
 }
 
 // ---- 发现关键入口文件 ----
-function findKeyFiles(dir) {
+export function findKeyFiles(dir) {
   const candidates = [
     'src/index.ts', 'src/index.js', 'src/main.ts', 'src/main.js',
     'src/app.ts', 'src/app.js', 'src/App.tsx', 'src/App.jsx',
@@ -224,7 +224,7 @@ function findKeyFiles(dir) {
 }
 
 // ---- 读 README ----
-function readReadme(dir) {
+export function readReadme(dir) {
   for (const name of ['README.md', 'readme.md', 'README.MD', 'Readme.md']) {
     const p = path.join(dir, name);
     if (fs.existsSync(p)) {
@@ -353,40 +353,42 @@ export async function runScan(targetDir, opts = {}) {
   }
 
   // progress.txt
-  if (!fileExists(dir, 'progress.txt')) {
+  if (!opts.lite && !fileExists(dir, 'progress.txt')) {
     const initProgress = `# ${projectName} - 工作进度日志\n\n## ${new Date().toISOString().split('T')[0]} - 项目接管初始化\n\nadev scan 已完成，生成了 architecture.md 和 CLAUDE.md。\n检测到的技术栈: ${techStack.join(', ')}\n\n请运行第一个任务「项目现状梳理」来深入了解项目。\n\n---\n`;
     writeFile(dir, 'progress.txt', initProgress);
     success('progress.txt — 工作进度日志');
-  } else {
+  } else if (!opts.lite) {
     info('progress.txt 已存在，跳过');
   }
 
   // init.sh
-  if (!fileExists(dir, 'init.sh')) {
+  if (!opts.lite && !fileExists(dir, 'init.sh')) {
     writeFile(dir, 'init.sh', generateInitSh({
       mode: 'existing', projectDir: '.', scripts: detectedScripts, devServer,
     }));
     success('init.sh — 环境初始化脚本');
-  } else {
+  } else if (!opts.lite) {
     info('init.sh 已存在，跳过');
   }
 
   // run-automation.sh
-  if (!fileExists(dir, 'run-automation.sh')) {
+  if (!opts.lite && !fileExists(dir, 'run-automation.sh')) {
     const { readTemplate } = await import('./generate.mjs');
     writeFile(dir, 'run-automation.sh', readTemplate('run-automation.sh'));
     success('run-automation.sh — 自动化循环脚本');
-  } else {
+  } else if (!opts.lite) {
     info('run-automation.sh 已存在，跳过');
   }
 
   // Claude Code 自定义命令
-  step(4, '配置 Claude Code 自定义命令...');
-  const commands = generateCommands();
-  for (const [name, content] of Object.entries(commands)) {
-    writeFile(dir, `.claude/commands/${name}`, content);
+  if (!opts.lite) {
+    step(4, '配置 Claude Code 自定义命令...');
+    const commands = generateCommands();
+    for (const [name, content] of Object.entries(commands)) {
+      writeFile(dir, `.claude/commands/${name}`, content);
+    }
+    success(`.claude/commands/ — ${Object.keys(commands).length} 个自定义命令`);
   }
-  success(`.claude/commands/ — ${Object.keys(commands).length} 个自定义命令`);
 
   // ---- 更新 .gitignore ----
   const gitignorePath = path.join(dir, '.gitignore');
