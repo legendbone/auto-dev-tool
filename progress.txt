@@ -1,0 +1,109 @@
+# auto-dev-tool - 工作进度日志
+
+## 2026-03-22 - 项目接管初始化
+
+adev scan 已完成，生成了 architecture.md 和 CLAUDE.md。
+检测到的技术栈: Node.js
+
+请运行第一个任务「项目现状梳理」来深入了解项目。
+
+---
+
+## 2026-03-23 - Task #1: 项目现状梳理
+
+### 完成的工作:
+- 通读全部源码（bin/adev.mjs, bin/qoder-dev.mjs, src/generate.mjs, src/scan.mjs, src/init.mjs, src/prompts.mjs, src/qoder/*）
+- 分析架构：ES module CLI 工具，零依赖，模板驱动，两种工作流（adev 6步 / qoder-dev 4步）
+- 生成 CLAUDE.md 项目文档
+
+### 测试结果:
+- 项目无测试套件，无 npm test 脚本
+
+### 备注:
+- 识别出 5 个改进方向：无测试、模板硬编码、静默错误、scan 过重、qoder-dev 分支分离
+
+---
+
+## 2026-03-23 - Task #2: 合并 qoder-dev 分支到 main
+
+### 完成的工作:
+- git checkout main && git merge qoder-dev（fast-forward 合并）
+- 更新 CLAUDE.md 删除分支分离说明，改为测试命令文档
+
+### 测试结果:
+- adev --help 和 qoder-dev --help 均正常工作
+
+### 备注:
+- 合并后 main 包含全部 qoder-dev 代码，两个 CLI 共存
+
+---
+
+## 2026-03-23 - Task #3: 改进错误处理
+
+### 完成的工作:
+- scan.mjs: 6 处空 catch 块替换为 console.error 警告或注释说明
+- generate.mjs: generateClaudeMd() 添加 config/mode/projectName 校验，generateArchitectureMd() 添加 scanResult 校验
+- prompts.mjs: choose() 无效输入循环重新提示
+
+### 测试结果:
+- 手动验证 adev scan 正常工作
+- 后续 Task #4 中通过单元测试验证校验逻辑
+
+### 备注:
+- 对预期内的解析失败（pyproject.toml、go.mod）仅添加注释，不输出警告
+
+---
+
+## 2026-03-23 - Task #4: 添加单元测试
+
+### 完成的工作:
+- scan.mjs: 导出 detectTechStack、extractScripts、generateTree、detectConfigFiles、countFiles、findKeyFiles、readReadme
+- bin/adev.mjs: 提取 parseCliArgs() 函数并导出
+- 创建 test/generate.test.mjs（20 个测试：模板生成、参数校验、renderTemplate）
+- 创建 test/scan.test.mjs（17 个测试：技术栈检测、脚本提取、配置文件检测、目录树）
+- 创建 test/cli.test.mjs（14 个测试：命令解析、标志处理、--lite）
+- package.json 添加 "test": "node --test test/*.test.mjs"
+
+### 测试结果:
+- npm test: 47 tests, 0 failures
+
+### 备注:
+- 使用 node:test + node:assert，保持零依赖原则
+- scan 测试使用 os.tmpdir() 创建临时目录模拟项目
+
+---
+
+## 2026-03-23 - Task #5: 模板外置
+
+### 完成的工作:
+- 实现 renderTemplate() 模板引擎（支持 {{var}} 变量替换和 {{#if key}}...{{/if}} 条件块）
+- 创建 9 个模板文件：claude-md.template, architecture-md.template, init-sh.template, task-new.json, task-existing.json, commands/next.md, commands/status.md, commands/add-task.md, commands/scan-project.md
+- 重构 generate.mjs：generateClaudeMd、generateArchitectureMd、generateTaskJson、generateInitSh、generateCommands 全部改为 readTemplate + renderTemplate
+- generate.mjs 从 489 行缩减到 165 行
+
+### 测试结果:
+- npm test: 44 tests (含 6 个新增 renderTemplate 测试), 0 failures
+- 无回归
+
+### 备注:
+- 模板引擎极简设计，仅支持变量替换和 if 块，足够当前需求
+- 用户现在可以直接编辑 templates/ 下的文件自定义生成内容
+
+---
+
+## 2026-03-23 - Task #6: 添加轻量 scan 模式 (--lite)
+
+### 完成的工作:
+- bin/adev.mjs: parseCliArgs 解析 --lite 标志，传递给 runScan
+- src/scan.mjs: lite 模式跳过 progress.txt、init.sh、run-automation.sh、.claude/commands/
+- 更新 help 文本添加 --lite 说明和示例
+- 添加 3 个 --lite 相关测试
+
+### 测试结果:
+- npm test: 47 tests, 0 failures
+- 手动验证：adev scan -y --lite 在测试目录仅生成 CLAUDE.md + task.json + architecture.md
+
+### 备注:
+- --lite 适合小项目或只需要 AI 指令文件的场景
+
+---

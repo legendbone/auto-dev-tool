@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "项目现状梳理",
+      "description": "阅读代码，理解项目架构，在 progress.txt 中记录发现",
+      "steps": [
+        "阅读 architecture.md 了解项目概况",
+        "浏览核心源码文件，理解代码结构",
+        "运行现有测试，记录基线状态",
+        "在 progress.txt 中记录项目理解"
+      ],
+      "passes": true
+    },
+    {
+      "id": 2,
+      "title": "合并 qoder-dev 分支到 main",
+      "description": "将 qoder-dev 分支合并到 main，统一代码库，结束分支分离维护",
+      "steps": [
+        "确认 qoder-dev 是 main 的严格超集",
+        "执行 git merge qoder-dev（fast-forward）",
+        "更新 CLAUDE.md 删除分支分离说明"
+      ],
+      "passes": true
+    },
+    {
+      "id": 3,
+      "title": "改进错误处理",
+      "description": "替换静默 catch 块、添加参数校验、修复 choose() 无效输入",
+      "steps": [
+        "scan.mjs: 替换 6 处空 catch 块为日志或注释",
+        "generate.mjs: generateClaudeMd 和 generateArchitectureMd 添加参数校验",
+        "prompts.mjs: choose() 无效输入重新提示而非静默 fallback"
+      ],
+      "passes": true
+    },
+    {
+      "id": 4,
+      "title": "添加单元测试",
+      "description": "使用 node:test + node:assert 添加测试套件，保持零依赖",
+      "steps": [
+        "导出 scan.mjs 辅助函数（detectTechStack 等）",
+        "提取 adev.mjs 中的 parseCliArgs 函数并导出",
+        "创建 test/generate.test.mjs 覆盖模板生成函数",
+        "创建 test/scan.test.mjs 覆盖技术栈检测",
+        "创建 test/cli.test.mjs 覆盖参数解析",
+        "package.json 添加 npm test 脚本"
+      ],
+      "passes": true
+    },
+    {
+      "id": 5,
+      "title": "模板外置",
+      "description": "将 generate.mjs 中硬编码的模板字符串迁移到 templates/ 目录，实现模板引擎",
+      "steps": [
+        "实现 renderTemplate 函数（支持 {{var}} 和 {{#if}}...{{/if}}）",
+        "创建 9 个模板文件（claude-md、architecture-md、init-sh、task-json、commands）",
+        "重构 generate.mjs 各函数使用 readTemplate + renderTemplate",
+        "运行测试确保无回归"
+      ],
+      "passes": true
+    },
+    {
+      "id": 6,
+      "title": "添加轻量 scan 模式 (--lite)",
+      "description": "adev scan --lite 仅生成 CLAUDE.md + task.json + architecture.md",
+      "steps": [
+        "adev.mjs: parseCliArgs 解析 --lite 标志",
+        "scan.mjs: lite 模式跳过 init.sh、run-automation.sh、progress.txt、commands",
+        "更新 help 文本",
+        "添加 --lite 相关测试"
+      ],
+      "passes": true
+    }
+  ]
+}

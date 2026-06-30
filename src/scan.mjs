@@ -353,30 +353,52 @@ export async function runScan(targetDir, opts = {}) {
   }
 
   // progress.txt
-  if (!opts.lite && !fileExists(dir, 'progress.txt')) {
-    const initProgress = `# ${projectName} - 工作进度日志\n\n## ${new Date().toISOString().split('T')[0]} - 项目接管初始化\n\nadev scan 已完成，生成了 architecture.md 和 CLAUDE.md。\n检测到的技术栈: ${techStack.join(', ')}\n\n请运行第一个任务「项目现状梳理」来深入了解项目。\n\n---\n`;
+  if (!fileExists(dir, 'progress.txt')) {
+    const date = new Date().toISOString().split('T')[0];
+    const initProgress = `# ${projectName} - 工作进度日志
+
+## ${date} - 项目接管初始化
+
+### 完成的工作:
+- adev scan 已完成，生成了 architecture.md 和 CLAUDE.md
+- 检测到的技术栈: ${techStack.join(', ')}
+
+### 关键决策:
+- 使用 adev 自动化开发系统接管已有项目
+
+### 测试结果:
+- 项目扫描成功，文件生成正常
+
+### 给下一个 Agent 的警告:
+- 这是初始扫描记录，请先运行第一个任务「项目现状梳理」来深入了解项目
+
+### 未解决的问题:
+- 需要确认 task.json 中的任务列表是否完整
+
+---
+`;
     writeFile(dir, 'progress.txt', initProgress);
     success('progress.txt — 工作进度日志');
-  } else if (!opts.lite) {
+  } else {
     info('progress.txt 已存在，跳过');
   }
 
   // init.sh
-  if (!opts.lite && !fileExists(dir, 'init.sh')) {
+  if (!fileExists(dir, 'init.sh')) {
     writeFile(dir, 'init.sh', generateInitSh({
       mode: 'existing', projectDir: '.', scripts: detectedScripts, devServer,
     }));
     success('init.sh — 环境初始化脚本');
-  } else if (!opts.lite) {
+  } else {
     info('init.sh 已存在，跳过');
   }
 
   // run-automation.sh
-  if (!opts.lite && !fileExists(dir, 'run-automation.sh')) {
+  if (!fileExists(dir, 'run-automation.sh')) {
     const { readTemplate } = await import('./generate.mjs');
     writeFile(dir, 'run-automation.sh', readTemplate('run-automation.sh'));
     success('run-automation.sh — 自动化循环脚本');
-  } else if (!opts.lite) {
+  } else {
     info('run-automation.sh 已存在，跳过');
   }
 

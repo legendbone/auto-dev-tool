@@ -17,7 +17,7 @@ const HELP = `
 
   选项:
     -y, --yes               跳过交互确认，使用默认配置
-    --lite                  轻量模式，仅生成 CLAUDE.md + task.json + architecture.md
+    --lite                  轻量模式，跳过自定义命令生成
     -h, --help              显示帮助信息
 
   示例:

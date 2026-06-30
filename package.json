@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Auto Dev - 一键配置 Claude Code 全自动开发系统",
   "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
   "bin": {
     "adev": "./bin/adev.mjs",
     "qoder-dev": "./bin/qoder-dev.mjs"
